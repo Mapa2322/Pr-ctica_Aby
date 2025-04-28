@@ -1,0 +1,55 @@
+#######Parte 1
+#vas checando los errores, el error te sirve para checar que tan bien ajustado esta tu modelo
+set.seed(12345)
+
+reclam <- rlnorm(20, meanlog=2.5, sdlog= 2.5)
+bootstrap_mse <- function(data, n_bootstrap) {
+  mse_values <- numeric(n_bootstrap)
+  for (i in 1:n_bootstrap) {
+    sample_data <- sample(data, replace = TRUE)
+    mse_values[i] <- mean((sample_data - mean(sample_data))^2)
+  }
+  return(mse_values)
+}
+
+#Estimacion del MSE usando bootstrap
+n_bootstrap <- 100000
+mse_estimate <-bootstrap_mse(reclam, n_bootstrap)
+mean_mse_estimate <- mean(mse_estimate)
+var_mse_estimante <- var(mse_estimate)
+desv_mse_esti<- var_mse_estimante^(1/2)
+cat("El MSE es", format(mean_mse_estimate, big.mark = ","), "\n")
+
+#Intervalos de confianza al 95%
+alpha <- 0.05
+z <- qnorm(1-alpha/2)
+ci_lower_mse <-  mean_mse_estimate - z*desv_mse_esti
+ci_upper_mse <-  mean_mse_estimate + z*desv_mse_esti
+
+
+#Resultados de los IC
+cat("Los intervalos de las MSE son: [", ci_lower_ant, ",", ci_upper_ant, "]\n")
+
+#Graficar la densidad
+mse<- bootstrap_mse(reclam, 100000)
+mse_vals <- mean(bootstrap_mse(reclam, 100000))
+
+# Calcular percentiles para intervalo
+ci <- quantile(bootstrap_mse(reclam, 100000), c(0.025, 0.975))
+ci
+# Graficar la densidad
+plot(density(mse), main = "Densidad de MSE Bootstrap", xlab = "MSE", lwd = 2)
+
+# Líneas verticales para intervalos y estadísticos
+abline(v = ci_lower_mse, col = "red", lwd = 2, lty = 2)       # 2.5%
+abline(v = ci_upper_mse, col = "red", lwd = 2, lty = 2)       # 97.5%
+abline(v = mean_mse_estimate, col = "blue", lwd = 2, lty = 3) # Media
+abline(v = ci, col = "darkgreen", lwd = 2, lty = 2)
+# Agregar leyenda
+legend("topright",
+       legend = c("ICL 2.5% - 97.5%", "Media", "ICQ 2.5% - 97.5%"),
+       col = c("red", "blue", "darkgreen"),
+       lty = c(2, 3, 4),
+       lwd = 2,
+       bty = "n")
+
